@@ -1,14 +1,28 @@
 $(document).ready(function(){
 
     var APIKey = "1ee1b4eb2dbac1f3b43704c095773612"
-    
+
     
     $("#search-button").on("click", function(event) {
         event.preventDefault();
-        
         var cityName = $("#city-input").val();
+
         var queryURL = "http://api.openweathermap.org/data/2.5/weather?q=" + cityName + "&appid=" + APIKey
     
+        // Add Search Items to History
+        var searchItem = $("<div>");
+        searchItem.addClass("row");
+
+        var searchButton = $("<button>")
+        searchButton.text(cityName);
+
+        searchButton.addClass("btn btn-primary btn-lg");
+        searchButton.css({"text-transform" : "capitalize" , "margin" : "5px"});
+        searchItem.append(searchButton);
+
+        $("#history").append(searchItem);
+
+
         $.ajax({
             url : queryURL,
             method : "GET"
@@ -49,7 +63,7 @@ $(document).ready(function(){
                 });
 
             temp = Number(temp)
-            temp = (Math.round(temp - 273.15) * 9/5 + 32)
+            temp = (Math.round((temp - 273.15) * 9/5 + 32))
  
             $("#city-name").text(cityName + " " + (moment().format("(MM/DD/YY)")));
             $("#weather-icon").attr("src", iconURL);
@@ -65,6 +79,8 @@ $(document).ready(function(){
                 method : "GET"
             }).then(function(response){
                 console.log(response);
+                
+                $("#add-forecast").text("");
                 var days = 0;
 
                 for (var i = 4; i < 37; i+=8) {
@@ -80,6 +96,9 @@ $(document).ready(function(){
                     var humidityP = $("<p>");
 
                     var forecastTemp = response.list[i].main.temp;
+                    forecastTemp = Number(forecastTemp)
+                    forecastTemp = (Math.round((forecastTemp - 273.15) * 9/5 + 32));
+
                     var forecastHumidity = response.list[i].main.humidity;
                     var forecastIcon = response.list[i].weather[0].icon;
                     
@@ -87,7 +106,7 @@ $(document).ready(function(){
 
                     days++;
                     dateP.text(moment().add(days, 'days').format('MM/DD/YY'));
-                    console.log("date", dateP.text())
+                    dateP.css("font-size", "20px");
                     forecast.append(dateP);
 
                     iconP.attr("src", forecastIconURL);
@@ -95,13 +114,9 @@ $(document).ready(function(){
 
                     tempP.text("Temp: " + forecastTemp + " \u00B0F");
                     forecast.append(tempP);
-                    console.log("temp", tempP.text())
-
 
                     humidityP.text("Humidity: " + forecastHumidity + "%");
                     forecast.append(humidityP);
-                    console.log("humidity", humidityP.text())
-
 
                     $("#add-forecast").append(forecast);
   
