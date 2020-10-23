@@ -29,6 +29,8 @@ $(document).ready(function(){
 
             var uvQuery = "http://api.openweathermap.org/data/2.5/uvi?lat=" + lat + "&lon=" + lon + "&appid=" + APIKey
                 
+
+                // UV Index API
                 $.ajax({
                     url : uvQuery,
                     method : "GET"
@@ -46,7 +48,6 @@ $(document).ready(function(){
                     $("#UV-val").text("UV Index: " + UV);
                 });
 
-
             temp = Number(temp)
             temp = (Math.round(temp - 273.15) * 9/5 + 32)
  
@@ -56,10 +57,60 @@ $(document).ready(function(){
             $("#humidity").text("Humidity: " + humidity + "%");
             $("#wind-speed").text("Wind Speed: " + windSpeed + " MPH");
     
-        });
-    
+            
+            // 5 Day Forecast
+            var fiveDayQuery = "http://api.openweathermap.org/data/2.5/forecast?q=" + cityName + "&appid=" + APIKey
+            $.ajax({
+                url : fiveDayQuery,
+                method : "GET"
+            }).then(function(response){
+                console.log(response);
+                var days = 0;
+
+                for (var i = 4; i < 37; i+=8) {
+
+                    console.log([i]);
+
+                    var forecast = $("<div>");
+                    forecast.addClass("col forecast bg-primary text-white ml-3 mb-3 rounded");
+
+                    var dateP = $("<p>");
+                    var iconP = $("<img>");
+                    var tempP = $("<p>");
+                    var humidityP = $("<p>");
+
+                    var forecastTemp = response.list[i].main.temp;
+                    var forecastHumidity = response.list[i].main.humidity;
+                    var forecastIcon = response.list[i].weather[0].icon;
+                    
+                    var forecastIconURL = "https://openweathermap.org/img/wn/" + forecastIcon + ".png"
+
+                    days++;
+                    dateP.text(moment().add(days, 'days').format('MM/DD/YY'));
+                    console.log("date", dateP.text())
+                    forecast.append(dateP);
+
+                    iconP.attr("src", forecastIconURL);
+                    forecast.append(iconP);
+
+                    tempP.text("Temp: " + forecastTemp + " \u00B0F");
+                    forecast.append(tempP);
+                    console.log("temp", tempP.text())
+
+
+                    humidityP.text("Humidity: " + forecastHumidity + "%");
+                    forecast.append(humidityP);
+                    console.log("humidity", humidityP.text())
+
+
+                    $("#add-forecast").append(forecast);
+  
+              };
+
+            });
+
+        });    
     
       });
-    
         
     });
