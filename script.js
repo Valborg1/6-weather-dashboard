@@ -1,42 +1,34 @@
 $(document).ready(function(){
 
     var APIKey = "1ee1b4eb2dbac1f3b43704c095773612"
+    var cityName;
 
-    function renderHistory() {
-        var searchHistory = [];
-        var cityName = $("#city-input").val();
-
-
-
-
-    }
-
-
-
-    
     $("#search-button").on("click", function(event) {
         event.preventDefault();
-        var cityName = $("#city-input").val();
+        event.stopPropagation();
+
+        cityName = $("#city-input").val();
+
+        if (cityName !== "") {
         
-        renderWeather();
-        renderForecast();
-        addHistoryItem();
+            renderWeather();
+            renderForecast();
+            autoSaveHistory();    
+        
+        };
        
         });    
     
-      
-
       function renderWeather() {
 
-      var cityName = $("#city-input").val();
       var queryURL = "http://api.openweathermap.org/data/2.5/weather?q=" + cityName + "&appid=" + APIKey
 
       $.ajax({
           url : queryURL,
           method : "GET"
       }).then(function(response){
-          console.log(queryURL);
-          console.log(response);
+        //   console.log(queryURL);
+        //   console.log(response);
           
           var cityName = response.name;
 
@@ -60,7 +52,7 @@ $(document).ready(function(){
                   var UV = response.value;
                   UV = Number(UV);
 
-                  if (UV >= 4) {
+                  if (UV >= 8) {
                       $("#UV-val").addClass("danger-zone");
                   } else {
                       $("#UV-val").removeClass("danger-zone");
@@ -84,20 +76,18 @@ $(document).ready(function(){
 
     function renderForecast() {
 
-    var cityName = $("#city-input").val();
     var fiveDayQuery = "http://api.openweathermap.org/data/2.5/forecast?q=" + cityName + "&appid=" + APIKey
+    
     $.ajax({
         url : fiveDayQuery,
         method : "GET"
     }).then(function(response){
-        console.log(response);
+        // console.log(response);
         
         $("#add-forecast").text("");
         var days = 0;
 
         for (var i = 4; i < 37; i+=8) {
-
-            console.log([i]);
 
             var forecast = $("<div>");
             forecast.addClass("col forecast bg-primary text-white ml-3 mb-3 rounded");
@@ -137,20 +127,86 @@ $(document).ready(function(){
 
     };
 
-    function addHistoryItem() {
-    var cityName = $("#city-input").val();
 
-    var searchItem = $("<div>");
-    searchItem.addClass("row");
-
-    var searchButton = $("<button>")
-    searchButton.text(cityName);
-
-    searchButton.addClass("btn btn-primary btn-lg");
-    searchButton.css({"text-transform" : "capitalize" , "margin" : "5px"});
-    searchItem.append(searchButton);
-
-    $("#history").append(searchItem); 
-
+var searchHistory = {
+        "cityName": []
     };
+
+var pullHistory = JSON.parse(localStorage.getItem("search"));
+
+if (localStorage.getItem("search") !== "undefined") {
+setHistory();
+}
+
+    function setHistory() {
+            
+        for (var m = 0; m < pullHistory.cityName.length; m++){
+            console.log("test", pullHistory.cityName[m]);
+
+            searchHistory.cityName.push(pullHistory.cityName[m]);
+            localStorage.setItem("search", JSON.stringify(searchHistory));    
+        }
+        
+        addHistoryItems();
+    };
+
+    function addHistoryItems() {
+        $("#history").text("");
+
+        pullHistory = JSON.parse(localStorage.getItem("search"));
+
+        for (var k = 0; k < pullHistory.cityName.length; k++) {
+            
+            var cityName = pullHistory.cityName[k];
+
+            var searchItem = $("<div>");
+            searchItem.addClass("row");
+
+            var searchButton = $("<button>");
+            searchButton.attr("index-name", cityName);
+            searchButton.addClass("history-btn");
+            searchButton.text(cityName);
+
+            searchButton.addClass("btn btn-primary btn-lg");
+            searchButton.css({"text-transform" : "capitalize" , "margin" : "5px"});
+            searchItem.append(searchButton);
+
+            $("#history").append(searchItem); 
+        };
+    };
+
+    function autoSaveHistory() {        
+
+        searchHistory.cityName.push(cityName);
+        localStorage.setItem("search", JSON.stringify(searchHistory));
+
+        addHistoryItems();
+    }
+
+    $(".history-btn").on("click", function(event) {
+        event.preventDefault();
+
+        console.log("checked")
+
+        cityName = $(this).attr("index-name");
+        
+        renderWeather();
+        renderForecast();
+
+    });
+
+
+    $("#clear-history").on("click", function(event) {
+        event.preventDefault();
+
+        localStorage.clear();
+        $("#history").text("");
+        
+        searchHistory = {
+            "cityName": []
+        };
+        localStorage.setItem("search", JSON.stringify(searchHistory));
+
+    });
+
 });
