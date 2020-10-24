@@ -183,10 +183,10 @@ setHistory();
         addHistoryItems();
     }
 
-    $(".history-btn").on("click", function(event) {
+    $("#history").on("click", ".history-btn", function(event) {
         event.preventDefault();
 
-        console.log("checked")
+        console.log("checked");
 
         cityName = $(this).attr("index-name");
         
